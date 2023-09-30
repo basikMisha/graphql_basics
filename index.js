@@ -29,13 +29,13 @@ function printTodo({ title, completed = false, id = "", user = {} }) {
     if (completed) {
         checkbox.setAttribute("checked", "true");
     }
-    // checkbox.addEventListener("change", handleTodoStatus);
+    checkbox.addEventListener("change", handleTodoStatus);
     li.prepend(checkbox);
 
     const delBtn = document.createElement("button");
     delBtn.className = "btn btn-link mb-1";
     delBtn.innerHTML = "&times;";
-    // delBtn.addEventListener('click', deleteTodo);
+    delBtn.addEventListener('click', deleteTodo);
     li.append(delBtn);
     todos.append(li);
 }
@@ -91,4 +91,32 @@ async function findTodos(e) {
         todos.innerHTML = "";
         data.todos.data.forEach((todo) => printTodo(todo))
     }
+}
+
+async function handleTodoStatus() {
+  const todoId = this.parentElement.dataset.id;
+ 
+  const changeStatusQuery = `mutation ChangeStatus {
+    updateTodo(id: "${todoId}", input: {completed: ${this.checked}}) {
+      completed
+    }
+  }`;
+
+  const data = await makeRequest(changeStatusQuery);
+  if(data.data.updateTodo.completed) {
+    this.setAttribute("checked", "true");
+  } else {
+    this.removeAttribute("checked");
+  }
+}
+
+async function deleteTodo() {
+  const todoId = this.parentElement.dataset.id;
+  const deleteTodoQuery = `mutation DeleteTodo {
+    deleteTodo(id: "${todoId}") }`;
+
+  const data = await makeRequest(deleteTodoQuery);
+  if(data) {
+    this.parentElement.remove();
+  }
 }
